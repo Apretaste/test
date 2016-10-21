@@ -1,0 +1,11 @@
+<service>
+	<serviceName>test</serviceName>
+	<serviceDescription>Test</serviceDescription>
+	<creatorEmail>kumahacker@gmail.com</creatorEmail>
+	<serviceCategory>otros</serviceCategory>
+	<serviceUsage>
+		<![CDATA[
+			Escriba un nuevo email a {APRETASTE_EMAIL} y en el asunto ponga la palabra TEST. 
+		]]>
+	</serviceUsage>
+</service>
