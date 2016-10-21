@@ -1,6 +1,6 @@
 <service>
 	<serviceName>test</serviceName>
-	<serviceDescription>Test</serviceDescription>
+	<serviceDescription>Test a range of Apretaste services</serviceDescription>
 	<creatorEmail>kumahacker@gmail.com</creatorEmail>
 	<serviceCategory>otros</serviceCategory>
 	<serviceUsage>
@@ -8,4 +8,6 @@
 			Escriba un nuevo email a {APRETASTE_EMAIL} y en el asunto ponga la palabra TEST. 
 		]]>
 	</serviceUsage>
+	<listed>0</listed>
+	<showAds>0</showAds>
 </service>
