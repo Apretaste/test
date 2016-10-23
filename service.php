@@ -45,9 +45,6 @@ class Test extends Service
 			if ($serviceName !== '')
 			{
 				unset($subjectPieces[0]);
-								
-				// $serviceName = strtolower(trim(substr($q, 0 , $p)));
-				$q = trim(substr($q, $p)); // cut!
 				
 				// include the service code
 				$di = \Phalcon\DI\FactoryDefault::getDefault();
