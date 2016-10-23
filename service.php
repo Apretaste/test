@@ -1,43 +1,41 @@
 <?php
 
-class Test extends Service {
-
+class Test extends Service 
+{
 	/**
 	 * Function executed when the service is called
 	 *
 	 * @param Request
 	 * @return Response
 	 * */
-	public function _main(Request $mainRequest){
-
+	public function _main(Request $mainRequest)
+	{
 		$connection = new Connection();
-		
+
 		// expecting subject = [mailbox] [service] (subservice) (subject)
 		$q = trim($mainRequest->query);
-		
+
 		// get mailbox
 		$p = strpos($q, ' ');
 		if ($p !== false)
 		{
 			$mailbox = trim(substr($q, 0 , $p));
-			
+
 			if ( ! Email::isJumper($mailbox))
 			{
 				if (strtolower($mailbox) == 'full')
 				{
 					$mailbox = array();
 					$jumpers = $this->utils->getJumpers();
-					foreach($jumpers as $jp)
-						$mailbox[] = $jp->email;
+					foreach($jumpers as $jp) $mailbox[] = $jp->email;
 				}
-				else 
-					return new Response();
+				else return new Response();
 			}
 			else 
 			{
 				$mailbox = array($mailbox);
 			}
-			
+
 			$q = trim(substr($q, $p)) . ' '; // cut!
 				
 			// get service name
@@ -181,7 +179,7 @@ class Test extends Service {
 	public function _buzones($request)
 	{
 		$jumpers = $this->utils->getJumpers();
-		
+
 		$services = array(
 			'WEB cuba',
 			'PIZARRA',
@@ -216,14 +214,17 @@ class Test extends Service {
 			'NOTIFICACIONES',
 			'TERMINOS'
 		);
-		
+
 		$jps = array();
 		foreach ($jumpers as $jumper)
+		{
+
 			$jps[] = array(
 				'mailbox' => $jumper->email,
 				'service' => $services[mt_rand(0,count($services)-1)]
 			);
-		
+		}
+
 		$response = new Response();
 		$response->setResponseSubject('buzones');
 		$response->createFromTemplate('basic.tpl', array(
