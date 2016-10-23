@@ -38,14 +38,14 @@ class Test extends Service {
 				$mailbox = array($mailbox);
 			}
 			
-			$q = trim(substr($q, $p)); // cut!
+			$q = trim(substr($q, $p)) . ' '; // cut!
 				
 			// get service name
-			$p = strpos($q, ' ');
-			if ($p !== false)
+			$subjectPieces = explode(' ', $q);
+			$serviceName = trim(strtolower($subjectPieces[0]));
+			
+			if ($serviceName !== '')
 			{
-				$subjectPieces = explode(" ", $q);
-				$serviceName = strtolower($subjectPieces[0]);
 				unset($subjectPieces[0]);
 								
 				// $serviceName = strtolower(trim(substr($q, 0 , $p)));
