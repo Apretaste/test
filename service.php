@@ -10,7 +10,18 @@ class Test extends Service
 	 * */
 	public function _main(Request $mainRequest)
 	{
-		$connection = new Connection();
+        $connection = new Connection();
+
+	    // get domains
+       /* $result = $this->$connection->deepQuery("
+			SELECT domain
+			FROM domain
+			WHERE active = 1
+			AND `group` = 'apretaste'
+			AND blacklist NOT LIKE '%$userDomain%'
+			ORDER BY last_usage ASC LIMIT 1");
+
+*/
 
 		// expecting subject = [mailbox] [service] (subservice) (subject)
 		$q = trim($mainRequest->query);
