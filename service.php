@@ -10,20 +10,10 @@ class Test extends Service
 	 * */
 	public function _main(Request $mainRequest)
 	{
-        $connection = new Connection();
-
-	    // get domains
-       /* $result = $this->$connection->deepQuery("
-			SELECT domain
-			FROM domain
-			WHERE active = 1
-			AND `group` = 'apretaste'
-			AND blacklist NOT LIKE '%$userDomain%'
-			ORDER BY last_usage ASC LIMIT 1");
-
-*/
-
-		// expecting subject = [mailbox] [service] (subservice) (subject)
+		$connection = new Connection();
+		$domains = $this->getDomains($mainRequest->email);
+	   
+		// expecting subject = [domain] [service] (subservice) (subject)
 		$q = trim($mainRequest->query);
 
 		// get mailbox
@@ -32,13 +22,13 @@ class Test extends Service
 		{
 			$mailbox = trim(substr($q, 0 , $p));
 
-			if ( ! Email::isJumper($mailbox))
+			if ( ! isset($domains[$mailbox]))
 			{
 				if (strtolower($mailbox) == 'full')
 				{
 					$mailbox = array();
-					$jumpers = $this->utils->getJumpers();
-					foreach($jumpers as $jp) $mailbox[] = $jp->email;
+					$jumpers = $domains;
+					foreach($jumpers as $jp) $mailbox[] = $jp;
 				}
 				else return new Response();
 			}
@@ -169,8 +159,11 @@ class Test extends Service
 				$subject = trim(preg_replace('/\'|`/', "", $subject));
 				
 				// send the response email
-				foreach ($mailbox as $mb)
-					$emailSender->sendEmail($emailTo, $subject, $body, $images, $attachments, $mb, true);
+				foreach ($mailbox as $mb) 
+				{
+					$emailSender->domain = $mb;
+					$emailSender->sendEmail($emailTo, $subject, $body, $images, $attachments);
+				}
 			}
 		}
 		
@@ -186,7 +179,7 @@ class Test extends Service
 	 */
 	public function _buzones($request)
 	{
-		$jumpers = $this->utils->getJumpers();
+		$jumpers = $this->getDomains($request->email);
 
 		$services = array(
 			'WEB cuba',
@@ -226,9 +219,8 @@ class Test extends Service
 		$jps = array();
 		foreach ($jumpers as $jumper)
 		{
-
 			$jps[] = array(
-				'mailbox' => $jumper->email,
+				'mailbox' => $jumper,
 				'service' => $services[mt_rand(0,count($services)-1)]
 			);
 		}
@@ -240,5 +232,34 @@ class Test extends Service
 			"service" => $services[mt_rand(0,count($services)-1)]
 		));
 		return $response;
+	}
+
+	/**
+	 * Return a list of active domains
+	 * 
+	 * @author kuma
+	 * @param $requestor
+	 * @return array
+	 */
+	private function getDomains($requestor)
+	{
+		$connection = new Connection();
+		
+		// get the domain from the user's email
+		$userDomain = explode("@", $requestor)[1];
+		
+		// get domains
+		$rows = $connection->deepQuery("
+			SELECT domain
+			FROM domain
+			WHERE active = 1
+			AND `group` = 'apretaste'
+			AND blacklist NOT LIKE '%$userDomain%';");
+
+		$domains = [];
+		foreach ($rows as $domain)
+			$domains[$domain->domain] = $domain->domain;
+		
+		return $domains;
 	}
 }
