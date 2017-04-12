@@ -10,6 +10,9 @@ class Test extends Service
 	 */
 	public function _main(Request $request)
 	{
+		// do not allow users without permission
+		if( ! $this->hasPermissions($request->email)) return new Response();
+
 		// get the list of domains
 		$domains = $this->getDomains();
 
@@ -35,6 +38,9 @@ class Test extends Service
 	 */
 	public function _full($request)
 	{
+		// do not allow users without permission
+		if( ! $this->hasPermissions($request->email)) return new Response();
+
 		// get the list of domains
 		$domains = $this->getDomains();
 
@@ -54,6 +60,21 @@ class Test extends Service
 
 		// do not sent any other emails
 		return new Response();
+	}
+
+	/**
+	 * Enforce user permissions
+	 *
+	 * @author salvipascual
+	 * @param $email
+	 * @return Boolean
+	 */
+	private function hasPermissions($email)
+	{
+		// check if the user/pass is ok
+		$connection = new Connection();
+		$res = $connection->query("SELECT email FROM manage_users WHERE email='$email'");
+		return !empty($res);
 	}
 
 	/**
