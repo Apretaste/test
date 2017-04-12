@@ -1,11 +1,11 @@
 <service>
 	<serviceName>test</serviceName>
-	<serviceDescription>Test a range of Apretaste services</serviceDescription>
-	<creatorEmail>kumahacker@gmail.com</creatorEmail>
+	<serviceDescription>Test all Apretaste mailboxes</serviceDescription>
+	<creatorEmail>salvi@apretaste.com</creatorEmail>
 	<serviceCategory>otros</serviceCategory>
 	<serviceUsage>
 		<![CDATA[
-			Escriba un nuevo email a {APRETASTE_EMAIL} y en el asunto ponga la palabra TEST. 
+			Escriba un nuevo email a {APRETASTE_EMAIL} y en el asunto ponga la palabra TEST.
 		]]>
 	</serviceUsage>
 	<listed>0</listed>
