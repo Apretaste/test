@@ -36,6 +36,7 @@ class Test extends Service
 	 */
 	public function _full($request)
 	{
+
 		// get the list of domains
 		$domains = $this->getDomains();
 
