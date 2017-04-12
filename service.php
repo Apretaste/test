@@ -8,7 +8,7 @@ class Test extends Service
 	 * @param Request
 	 * @return Response
 	 */
-	public function _main(Request $mainRequest)
+	public function _main(Request $request)
 	{
 		// get the list of domains
 		$domains = $this->getDomains();
@@ -20,7 +20,6 @@ class Test extends Service
 
 		// send response
 		$response = new Response();
-		$response->setResponseGroup("test");
 		$response->setResponseSubject($this->utils->randomSentence());
 		$response->setEmailLayout("email_empty.tpl");
 		$response->createFromTemplate('domains.tpl', $content);
@@ -36,7 +35,6 @@ class Test extends Service
 	 */
 	public function _full($request)
 	{
-
 		// get the list of domains
 		$domains = $this->getDomains();
 
@@ -54,7 +52,7 @@ class Test extends Service
 			$sender->sendEmail($request->email, $subject, $body);
 		}
 
-		// send response
+		// do not sent any other emails
 		return new Response();
 	}
 
