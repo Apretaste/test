@@ -3,7 +3,7 @@
 class Test extends Service
 {
 	/**
-	 * Function executed when the service is called
+	 * Get the list of "working" domains
 	 *
 	 * @param Request
 	 * @return Response
@@ -30,9 +30,9 @@ class Test extends Service
 	}
 
 	/**
-	 * Subsevice buzones
+	 * Email the tester from each domain
 	 *
-	 * @author kuma
+	 * @author salvipascual
 	 * @param Request $request
 	 * @return Response
 	 */
@@ -59,6 +59,36 @@ class Test extends Service
 		}
 
 		// do not sent any other emails
+		return new Response();
+	}
+
+	/**
+	 * Let the tester share with us what domains are working
+	 *
+	 * @author salvipascual
+	 * @param Request $request
+	 * @return Response
+	 */
+	public function _feed($request)
+	{
+		// get the list of domains from the body
+		$regex = '/[-A-Za-z0-9]*\.{1}[a-z]{2,4}/';
+		preg_match_all($regex, $request->body, $domains);
+		$domains = $domains[0];
+
+		// save into table test
+		$activeDomains = count($domains);
+		$domainsCSV = implode(",", $domains);
+		$sql = "INSERT INTO test (tester,count,domains) VALUES ('{$request->email}','$activeDomains','$domainsCSV');";
+
+		// update the last tested date for the domains
+		foreach ($domains as $domain) {
+			$sql .= "UPDATE domain SET last_tested=CURRENT_TIMESTAMP WHERE domain = '$domain';";
+		};
+
+		// save all data into the database
+		$connection = new Connection();
+		$connection->query($sql);
 		return new Response();
 	}
 
