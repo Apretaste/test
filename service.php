@@ -3,9 +3,10 @@
 class Test extends Service
 {
 	/**
-	 * Get the list of "working" domains
+	 * Email the tester from each domain
 	 *
-	 * @param Request
+	 * @author salvipascual
+	 * @param Request $request
 	 * @return Response
 	 */
 	public function _main(Request $request)
@@ -13,49 +14,18 @@ class Test extends Service
 		// do not allow users without permission
 		if( ! $this->hasPermissions($request->email)) return new Response();
 
-		// get the list of domains
-		$domains = $this->getDomains();
-
-		// set the variables for the view
-		$content = array(
-			"total" => count($domains),
-			"domains" => $domains);
-
-		// send response
-		$response = new Response();
-		$response->setResponseSubject($this->utils->randomSentence());
-		$response->setEmailLayout("email_empty.tpl");
-		$response->createFromTemplate('domains.tpl', $content);
-		return $response;
-	}
-
-	/**
-	 * Email the tester from each domain
-	 *
-	 * @author salvipascual
-	 * @param Request $request
-	 * @return Response
-	 */
-	public function _full($request)
-	{
-		// do not allow users without permission
-		if( ! $this->hasPermissions($request->email)) return new Response();
-
-		// get the list of domains
-		$domains = $this->getDomains();
+		// get the list of emails
+		$connection = new Connection();
+		$results = $connection->query("SELECT email FROM nodes_output WHERE active=1");
 
 		// send the emails
-		$sender = new Email();
-		foreach ($domains as $domain)
-		{
-			// create the subject and body
-			$dp = explode(".", $domain);
-			$subject = $dp[0] . " " . $this->utils->randomSentence(1) . " " . $dp[1];
-			$body = $this->utils->randomSentence();
-
-			// send the email
-			$sender->setDomain($domain);
-			$sender->sendEmail($request->email, $subject, $body);
+		foreach ($results as $r) {
+			$email = new Email();
+			$email->from = $r->email;;
+			$email->to = $request->email;
+			$email->subject = $this->utils->randomSentence(1) . " " . explode("@", $r->email)[0];
+			$email->body = $this->utils->randomSentence();
+			$email->sendEmailViaNode();
 		}
 
 		// do not sent any other emails
@@ -71,24 +41,25 @@ class Test extends Service
 	 */
 	public function _feed($request)
 	{
-		// get the list of domains from the body
-		$regex = '/[-A-Za-z0-9]*\.{1}[a-z]{2,4}/';
-		preg_match_all($regex, $request->body, $domains);
-		$domains = $domains[0];
+		// do not allow users without permission
+		if( ! $this->hasPermissions($request->email)) return new Response();
 
-		// save into table test
-		$activeDomains = count($domains);
-		$domainsCSV = implode(",", $domains);
-		$sql = "INSERT INTO test (tester,count,domains) VALUES ('{$request->email}','$activeDomains','$domainsCSV');";
+		// get the list of domains from the body
+		$regex = "/(?:[A-Za-z0-9!#$%&'*+=?^_`{|}~-]+(?:\.[A-Za-z0-9!#$%&'*+=?^_`{|}~-]+)*|\"(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21\x23-\x5b\x5d-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])*\")@(?:(?:[A-Za-z0-9](?:[A-Za-z0-9-]*[A-Za-z0-9])?\.)+[A-Za-z0-9](?:[A-Za-z0-9-]*[A-Za-z0-9])?|\[(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?|[A-Za-z0-9-]*[A-Za-z0-9]:(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21-\x5a\x53-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])+)\])/";
+		preg_match_all($regex, $request->body, $emails);
+		$emails = $emails[0];
 
 		// update the last tested date for the domains
-		foreach ($domains as $domain) {
-			$sql .= "UPDATE domain SET last_tested=CURRENT_TIMESTAMP WHERE domain = '$domain';";
-		};
+		$activeEmails = count($emails);
+		$emailsCSV = implode(",", $emails);
+		$sql = "INSERT INTO test (tester,count,domains) VALUES ('{$request->email}','$activeEmails','$emailsCSV');";
+		foreach ($emails as $e) $sql .= "UPDATE nodes_output SET last_test=CURRENT_TIMESTAMP WHERE email = '$e';";
 
-		// save all data into the database
+		// save into the database
 		$connection = new Connection();
 		$connection->query($sql);
+
+		// do not send any confirmation email
 		return new Response();
 	}
 
@@ -105,26 +76,5 @@ class Test extends Service
 		$connection = new Connection();
 		$res = $connection->query("SELECT email FROM manage_users WHERE email='$email'");
 		return !empty($res);
-	}
-
-	/**
-	 * Get the list of active domains as array
-	 *
-	 * @author salvipascual
-	 */
-	private function getDomains()
-	{
-		// get the domain with less usage
-		$connection = new Connection();
-		$result = $connection->query("
-			SELECT domain
-			FROM domain
-			WHERE active = 1
-			AND blacklist NOT LIKE '%nauta.cu%'");
-
-		// clean to return just the list of domains
-		$domains = array();
-		foreach ($result as $item) $domains[] = $item->domain;
-		return $domains;
 	}
 }
